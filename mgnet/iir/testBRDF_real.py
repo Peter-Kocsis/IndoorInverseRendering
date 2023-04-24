@@ -6,11 +6,11 @@ import argparse
 import os
 from glob import glob
 from torch.utils.data import DataLoader
-import utils
+import iir.utils as utils
 from tqdm import tqdm
 from tqdm.contrib import tenumerate, tzip
 import yaml
-import models
+import iir.models as models
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import RichProgressBar
 
