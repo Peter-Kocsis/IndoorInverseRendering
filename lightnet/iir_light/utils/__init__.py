@@ -10,7 +10,7 @@ import cv2
 import glob
 from .cfgnode import CfgNode
 import torch.nn.functional as F
-import glm
+# import glm
 
 
 class Metric(object):

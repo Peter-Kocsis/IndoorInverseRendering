@@ -1,12 +1,12 @@
 from . import RenderingLayerBase, get_light_chunk
-from .brdf import *
+from lightnet.iir_light.models.render.brdf import *
 from .ssrt import SSRTEngine, ssrt
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
-import utils
-import glm
+from lightnet.iir_light import utils
+# import glm
 import math
 
 class RenderLayerClip(RenderingLayerBase):
