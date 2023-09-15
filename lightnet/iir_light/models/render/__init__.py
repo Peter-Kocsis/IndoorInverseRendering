@@ -1,13 +1,15 @@
 import torch
 import torch.nn as nn
 import numpy as np
+from tqdm.auto import tqdm
+
 
 def get_light_chunk(model, im, model_kwargs, bn, chunk, mode = 2):
     if chunk > 0:
         # print(uv.shape, ssrt_uv.shape, direction.shape, index.shape, normal.shape)
         splits = [{k : model_kwargs[k][i:i+chunk] for k in model_kwargs} for i in range(0, bn, chunk)]
         lights = []
-        for split in splits:
+        for split in tqdm(splits):
             # print(*[x.shape for _, x in split.items()])
             light = model(mode, im, **split)
             lights.append(light)
