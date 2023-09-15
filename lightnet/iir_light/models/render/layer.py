@@ -6,7 +6,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 from lightnet.iir_light import utils
-# import glm
+import glm
 import math
 
 class RenderLayerClip(RenderingLayerBase):
