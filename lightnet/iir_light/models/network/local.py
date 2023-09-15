@@ -4,21 +4,22 @@ import torch.nn.functional as F
 import torchvision
 import numpy as np
 
+
 class LocalEncoder(nn.Module):
     def __init__(
-        self,
-        backbone="resnet34",
-        pretrained=True,
-        num_layers=4,
-        latent_size=None,
-        index_interp="bilinear",
-        index_padding="border",
-        upsample_interp="bilinear",
-        use_first_pool=True,
-        single_channel=False,
-        use_normal=False,
-        use_albedo=False,
-        use_material=False
+            self,
+            backbone="resnet34",
+            pretrained=True,
+            num_layers=4,
+            latent_size=None,
+            index_interp="bilinear",
+            index_padding="border",
+            upsample_interp="bilinear",
+            use_first_pool=True,
+            single_channel=False,
+            use_normal=False,
+            use_albedo=False,
+            use_material=False
     ):
         super().__init__()
         self.backbone = getattr(torchvision.models, backbone)(pretrained=pretrained)
@@ -76,12 +77,12 @@ class LocalEncoder(nn.Module):
         if self.latent_size is not None:
             self.latent = F.interpolate(
                 self.latent,
-                self.latent_size,
+                tuple(self.latent_size),
                 mode=self.upsample_interp,
                 align_corners=align_corners
             )
         return self.latent
-    
+
     def index(self, uv, index, integer_uv=False):
         """
         :param uv (B, 2) float uv
@@ -89,26 +90,31 @@ class LocalEncoder(nn.Module):
         :return (B, C)
         """
         H, W = self.latent.shape[2:]
-        u, v = uv[:,0], uv[:,1]
+        u, v = uv[:, 0], uv[:, 1]
         if not integer_uv:
             u = torch.clamp(torch.round(u * H - 0.5).long(), min=0, max=H)
             v = torch.clamp(torch.round(v * W - 0.5).long(), min=0, max=W)
-        features = self.latent[index,:,u,v] # (B, C)
+        features = self.latent[index, :, u, v]  # (B, C)
         if features.size(0) == 1:
             features = features.expand(uv.size(0), -1)
         return features
+
 
 def init_weights_normal(m):
     if isinstance(m, nn.Linear):
         nn.init.kaiming_normal_(m.weight, a=0.0, nonlinearity='relu', mode='fan_in')
         nn.init.zeros_(m.bias)
 
+
 class LocalMLP(nn.Module):
     def __init__(self, input_size, hidden_size=512, out_channel=3, num_layers=8, skips=[4]):
         super().__init__()
         self.skips = skips
         self.linears = nn.ModuleList(
-            [nn.Linear(input_size, hidden_size)] + [nn.Linear(hidden_size, hidden_size) if i not in skips else nn.Linear(hidden_size + input_size, hidden_size) for i in range(num_layers)]
+            [nn.Linear(input_size, hidden_size)] + [
+                nn.Linear(hidden_size, hidden_size) if i not in skips else nn.Linear(hidden_size + input_size,
+                                                                                     hidden_size) for i in
+                range(num_layers)]
         )
         self.output_layer = nn.Linear(hidden_size, out_channel)
 
@@ -122,7 +128,7 @@ class LocalMLP(nn.Module):
             self.output_layer.apply(nl_weight_init)
         if first_layer_init is not None:
             self.linears[0].apply(first_layer_init)
-    
+
     def forward(self, x):
         h = x
         for i, _ in enumerate(self.linears):
@@ -133,12 +139,13 @@ class LocalMLP(nn.Module):
         h = self.output_layer(h)
         return self.output_activation(h)
 
+
 class LocalNet(nn.Module):
     def __init__(self, cfg):
         super().__init__()
         self.encoder = LocalEncoder(use_normal=cfg.encode_normal, **cfg.encoder)
         latent_size = self.encoder.channels
-        
+
         self.use_pos = getattr(cfg, "use_pos", False)
         self.use_normal = getattr(cfg, "use_normal", False)
         self.use_rough = getattr(cfg, "use_rough", False)
@@ -147,6 +154,7 @@ class LocalNet(nn.Module):
         def fourier_mapping(x: torch.Tensor, B: torch.Tensor) -> torch.Tensor:
             xp = torch.matmul(2 * np.pi * x, B)
             return torch.cat([torch.sin(xp), torch.cos(xp)], dim=-1)
+
         self.encode_pos_fn = self.encode_dir_fn = fourier_mapping
         input_size = 2 * cfg.fourier.map_dim
         self.register_buffer('Bd', torch.randn(3, cfg.fourier.map_dim) * cfg.fourier.sigma, True)
@@ -163,7 +171,7 @@ class LocalNet(nn.Module):
         if self.use_rough:
             input_size += 2 * cfg.fourier.map_dim
             self.register_buffer('Br', torch.randn(1, cfg.fourier.map_dim) * cfg.fourier.sigma, True)
-        
+
         self.mlp = LocalMLP(latent_size + input_size, out_channel=3)
 
     def encode(self, im):
@@ -171,11 +179,11 @@ class LocalNet(nn.Module):
         :param im (S, 3 (or 6), H, W)
         """
         self.encoder(im)
-    
+
     def forward(
-        self, uv: torch.LongTensor, directions: torch.Tensor, index: torch.Tensor, 
-        normal: torch.Tensor = None, Kd: torch.Tensor = None, Ks: torch.Tensor = None, rough: torch.Tensor = None
-        ):
+            self, uv: torch.LongTensor, directions: torch.Tensor, index: torch.Tensor,
+            normal: torch.Tensor = None, Kd: torch.Tensor = None, Ks: torch.Tensor = None, rough: torch.Tensor = None
+    ):
         """
         :param uv (B, 2)
         :param directions (B, 3)
