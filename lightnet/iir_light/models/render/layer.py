@@ -46,7 +46,7 @@ class RenderLayerClip(RenderingLayerBase):
         """
         bn, _, row, col = vpos.shape
         assert(bn == 1) # Only support bn = 1
-        assert(row == self.imHeight and col == self.imWidth)
+        assert(row == self.imHeight and col == self.imWidth), f"Input image size {row}x{col} does not match the specified size {self.imHeight}x{self.imWidth}"
         dev = vpos.device
 
         ##############################
