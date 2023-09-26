@@ -36,7 +36,8 @@ class RenderLayerClip(RenderingLayerBase):
             normal: torch.Tensor,
             rough: torch.Tensor,
             metal: torch.Tensor,
-            vpos: torch.Tensor
+            vpos: torch.Tensor,
+            mode = 2
         ):
         """
         Render according to material, normal and lighting conditions
@@ -185,7 +186,7 @@ class RenderLayerClip(RenderingLayerBase):
             'Kd': Kd, 'Ks': Ks, 'rough': roughs
         }
 
-        light = get_light_chunk(model, im, model_kwargs, direction.size(0), self.chunk)
+        light = get_light_chunk(model, im, model_kwargs, direction.size(0), self.chunk, mode = mode)
         light = light.view(1, self.spp, irow, icol, 3)
         light = light.permute(0, 1, 4, 2, 3) # (bn, spp, 3, h, w)
 
