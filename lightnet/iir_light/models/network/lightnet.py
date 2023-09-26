@@ -40,7 +40,8 @@ class LightNet(nn.Module):
             self,
             im: torch.Tensor, uv: torch.LongTensor,
             directions: torch.Tensor, index: torch.Tensor,
-            normal: torch.Tensor, Kd: torch.Tensor, Ks: torch.Tensor, rough: torch.Tensor
+            normal: torch.Tensor, Kd: torch.Tensor, Ks: torch.Tensor, rough: torch.Tensor,
+            **kwargs
         ):
         if self.wrap_im:
             im = im[0,...]
@@ -49,7 +50,7 @@ class LightNet(nn.Module):
         assert torch.all(ssrt_mask)
         return self.model(uv, directions, index, normal, Kd, Ks, rough)
     
-    def forward_nossr(self, im: torch.Tensor, directions: torch.Tensor, positions: torch.Tensor, index: torch.LongTensor):
+    def forward_nossr(self, im: torch.Tensor, directions: torch.Tensor, positions: torch.Tensor, index: torch.LongTensor, **kwargs):
         if self.wrap_im:
             im = im[0,...]
         return self.model_global(im, directions, positions, index)
