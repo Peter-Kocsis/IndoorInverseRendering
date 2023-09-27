@@ -129,6 +129,9 @@ def loadHdr(imName, imSize=None, interpolation=cv2.INTER_AREA):
         im = cv2.resize(im, imSize, interpolation = interpolation)
     im = np.transpose(im, [2, 0, 1])
     im = im[::-1, :, :].copy()
+
+    if im.shape[0] == 4:
+        im = im[1:, ...]
     # return im
     return torch.from_numpy(im)
 
