@@ -33,19 +33,19 @@ class RenderingLayerBase(nn.Module):
         z = -np.ones( (imHeight, imWidth), dtype=np.float32)
 
         pCoord = np.stack([x, y, z]).astype(np.float32)
-        self.pCoord = pCoord[np.newaxis, :, :, :]
-        v = self.cameraPos - self.pCoord
+        pCoord = pCoord[np.newaxis, :, :, :]
+        v = self.cameraPos - pCoord
         v = v / np.sqrt(np.maximum(np.sum(v*v, axis=1), 1e-12)[:, np.newaxis, :, :] )
         v = v.astype(dtype = np.float32)
 
-        self.v = torch.from_numpy(v)
-        self.pCoord = torch.from_numpy(self.pCoord)
+        v = torch.from_numpy(v)
+        pCoord = torch.from_numpy(pCoord)
 
-        self.up = torch.Tensor([0,1,0])
-        assert(brdf_type in ["disney", "ggx"])
+        up = torch.Tensor([0,1,0])
+        # assert(brdf_type in ["disney", "ggx"])
         self.brdf_type = brdf_type
         self.spp = spp
 
-        self.v = torch.nn.parameter.Parameter(self.v, False)
-        self.pCoord = torch.nn.parameter.Parameter(self.pCoord, False)
-        self.up = torch.nn.parameter.Parameter(self.up, False)
+        self.register_buffer('v', v)
+        self.register_buffer('pCoord', pCoord)
+        self.register_buffer('up', up)
