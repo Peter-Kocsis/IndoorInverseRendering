@@ -205,13 +205,14 @@ def to_global(d, x, y, z):
     """
     return d[:,0:1] * x + d[:,1:2] * y + d[:,2:3] * z
 
-def depth_to_vpos(depth: torch.Tensor, fov, permute=False) -> torch.Tensor:
+def depth_to_vpos(depth: torch.Tensor, fov, permute=False, normalize=True) -> torch.Tensor:
     row, col = depth.shape
     fovx = math.radians(fov)
     fovy = 2 * math.atan(math.tan(fovx / 2) / (col / row))
     vpos = torch.zeros(row, col, 3, device=depth.device)
-    dmax = torch.max(depth)
-    depth = depth / dmax
+    if normalize:
+        dmax = torch.max(depth)
+        depth = depth / dmax
     Y = 1 - (torch.arange(row, device=depth.device) + 0.5) / row
     Y = Y * 2 - 1
     X = (torch.arange(col, device=depth.device) + 0.5) / col
