@@ -46,6 +46,6 @@ class RenderingLayerBase(nn.Module):
         self.brdf_type = brdf_type
         self.spp = spp
 
-        self.register_buffer('v', v)
-        self.register_buffer('pCoord', pCoord)
-        self.register_buffer('up', up)
+        self.register_buffer('v', v, persistent=False)
+        self.register_buffer('pCoord', pCoord, persistent=False)
+        self.register_buffer('up', up, persistent=False)
